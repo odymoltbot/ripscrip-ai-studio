@@ -24,6 +24,23 @@ Canvas: 640x350, each coordinate is 2 base36 chars.
 Colors: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Brown, 7=LightGray, 8=DarkGray, 9=LightBlue, A=LightGreen, B=LightCyan, C=LightRed, D=LightMagenta, E=Yellow, F=White
 `;
 
+interface GeminiPart {
+  text?: string;
+  thought?: boolean;
+}
+
+interface GeminiResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: GeminiPart[];
+    };
+  }>;
+  error?: {
+    message?: string;
+    code?: number;
+  };
+}
+
 export async function POST(request: NextRequest) {
   if (!GEMINI_API_KEY) {
     return NextResponse.json(
@@ -85,26 +102,51 @@ Create a faithful vector representation of the image in the retro BBS style.`;
           }
         ],
         generationConfig: {
-          temperature: 1.0, // Required for thinking
           maxOutputTokens: 16384,
+          // Gemini 2.5 Flash thinking config
           thinkingConfig: {
-            thinkingBudget: 4096, // More thinking for image analysis
+            thinkingBudget: 4096  // More thinking for image analysis
           }
         }
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Gemini API error:', errorData);
+      const errorText = await response.text();
+      console.error('Gemini API error:', response.status, errorText);
       return NextResponse.json(
-        { error: 'Image vectorization failed' },
+        { error: `Image vectorization failed: ${response.status}` },
         { status: 500 }
       );
     }
 
-    const data = await response.json();
-    let ripscrip = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const data: GeminiResponse = await response.json();
+    
+    if (data.error) {
+      console.error('Gemini API error response:', data.error);
+      return NextResponse.json(
+        { error: data.error.message || 'Vectorization failed' },
+        { status: 500 }
+      );
+    }
+
+    // Extract text from non-thought parts
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    let ripscrip = '';
+    
+    for (const part of parts) {
+      // Skip thought summaries, only get actual output
+      if (part.text && !part.thought) {
+        ripscrip += part.text;
+      }
+    }
+
+    if (!ripscrip) {
+      return NextResponse.json(
+        { error: 'No output generated' },
+        { status: 500 }
+      );
+    }
 
     // Clean up
     ripscrip = ripscrip

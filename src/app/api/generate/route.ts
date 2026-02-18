@@ -53,6 +53,23 @@ interface GenerateRequest {
   interactive: boolean;
 }
 
+interface GeminiPart {
+  text?: string;
+  thought?: boolean;
+}
+
+interface GeminiResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: GeminiPart[];
+    };
+  }>;
+  error?: {
+    message?: string;
+    code?: number;
+  };
+}
+
 export async function POST(request: NextRequest) {
   if (!GEMINI_API_KEY) {
     return NextResponse.json(
@@ -103,26 +120,51 @@ Create a visually interesting scene that captures the nostalgic BBS art aestheti
           }
         ],
         generationConfig: {
-          temperature: 1.0, // Required for thinking
           maxOutputTokens: 16384,
+          // Gemini 2.5 Flash thinking config
           thinkingConfig: {
-            thinkingBudget: 2048, // Low thinking budget
+            thinkingBudget: 2048  // Low thinking budget (0-24576 range)
           }
         }
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Gemini API error:', errorData);
+      const errorText = await response.text();
+      console.error('Gemini API error:', response.status, errorText);
       return NextResponse.json(
-        { error: 'AI generation failed' },
+        { error: `AI generation failed: ${response.status}` },
         { status: 500 }
       );
     }
 
-    const data = await response.json();
-    let ripscrip = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const data: GeminiResponse = await response.json();
+    
+    if (data.error) {
+      console.error('Gemini API error response:', data.error);
+      return NextResponse.json(
+        { error: data.error.message || 'AI generation failed' },
+        { status: 500 }
+      );
+    }
+
+    // Extract text from non-thought parts
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    let ripscrip = '';
+    
+    for (const part of parts) {
+      // Skip thought summaries, only get actual output
+      if (part.text && !part.thought) {
+        ripscrip += part.text;
+      }
+    }
+
+    if (!ripscrip) {
+      return NextResponse.json(
+        { error: 'No output generated' },
+        { status: 500 }
+      );
+    }
 
     // Clean up the output - remove any markdown or explanations
     ripscrip = ripscrip
