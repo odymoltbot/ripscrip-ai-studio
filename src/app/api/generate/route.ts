@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-// Gemini 2.5 Flash with thinking
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+// Gemini 3 Flash Preview with thinking
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
 // RIPscrip command reference for the prompt
 const RIPSCRIP_REFERENCE = `
@@ -121,9 +121,9 @@ Create a visually interesting scene that captures the nostalgic BBS art aestheti
         ],
         generationConfig: {
           maxOutputTokens: 16384,
-          // Gemini 2.5 Flash thinking config
+          // Gemini 3 Flash thinking config (uses thinkingLevel, not thinkingBudget)
           thinkingConfig: {
-            thinkingBudget: 2048  // Low thinking budget (0-24576 range)
+            thinkingLevel: "low"  // low, medium, high
           }
         }
       }),

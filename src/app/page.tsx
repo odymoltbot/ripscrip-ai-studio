@@ -213,7 +213,7 @@ export default function Home() {
       <footer className="mt-12 text-center text-gray-600 text-xs">
         <pre>
 {`═══════════════════════════════════════════════════════════════
-  Powered by Gemini 2.5 Pro │ Inspired by RIPterm circa 1993
+  Powered by Gemini 3 Flash │ Inspired by RIPterm circa 1993
   ─────────────────────────────────────────────────────────────
   Before the Web, there was the BBS...
 ═══════════════════════════════════════════════════════════════`}
