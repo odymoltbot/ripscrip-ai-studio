@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+// Gemini 2.5 Pro with thinking for better RIPscrip generation
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-06-05:generateContent';
 
 // RIPscrip command reference for the prompt
 const RIPSCRIP_REFERENCE = `
@@ -102,8 +103,11 @@ Create a visually interesting scene that captures the nostalgic BBS art aestheti
           }
         ],
         generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 4096,
+          temperature: 1.0, // Required for thinking
+          maxOutputTokens: 16384,
+          thinkingConfig: {
+            thinkingBudget: 2048, // Low thinking budget
+          }
         }
       }),
     });

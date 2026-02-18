@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+// Gemini 2.5 Pro with thinking for better vectorization
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-06-05:generateContent';
 
 // RIPscrip reference (same as generate route)
 const RIPSCRIP_REFERENCE = `
@@ -84,8 +85,11 @@ Create a faithful vector representation of the image in the retro BBS style.`;
           }
         ],
         generationConfig: {
-          temperature: 0.5,
-          maxOutputTokens: 8192,
+          temperature: 1.0, // Required for thinking
+          maxOutputTokens: 16384,
+          thinkingConfig: {
+            thinkingBudget: 4096, // More thinking for image analysis
+          }
         }
       }),
     });

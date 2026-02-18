@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+// Retro loading - no external icons needed
 
 // EGA 16-color palette
 const EGA_PALETTE = [
@@ -65,11 +65,12 @@ export function RipPreview({ code, width, height, isLoading }: RipPreviewProps) 
   return (
     <div className="relative">
       <div 
-        className="border border-gray-700 rounded-lg overflow-hidden bg-black mx-auto"
+        className="border-2 border-green-800 overflow-hidden bg-black mx-auto relative"
         style={{ 
           width: displayWidth, 
           maxWidth: '100%',
-          aspectRatio: `${width}/${height}`
+          aspectRatio: `${width}/${height}`,
+          boxShadow: '0 0 20px rgba(0, 255, 0, 0.1)',
         }}
       >
         <canvas
@@ -81,27 +82,31 @@ export function RipPreview({ code, width, height, isLoading }: RipPreviewProps) 
         />
         
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-            <div className="text-center">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-400 mx-auto" />
-              <p className="text-gray-400 mt-2">Generating...</p>
+          <div className="absolute inset-0 flex items-center justify-center bg-black/90 font-mono">
+            <div className="text-center text-green-400">
+              <pre className="animate-pulse">
+{`╔═══════════════════╗
+║  CONNECTING...    ║
+║  ████████░░░░ 67% ║
+║  RENDERING RIP    ║
+╚═══════════════════╝`}
+              </pre>
             </div>
           </div>
         )}
       </div>
       
-      {/* Progress bar for rendering */}
+      {/* Progress bar for rendering - retro style */}
       {code && renderProgress < 100 && !isLoading && (
-        <div className="mt-2">
-          <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-blue-500 transition-all duration-100"
-              style={{ width: `${renderProgress}%` }}
-            />
+        <div className="mt-2 font-mono text-xs text-green-400">
+          <div className="flex items-center gap-2">
+            <span>DRAW:</span>
+            <span className="text-cyan-400">
+              {'█'.repeat(Math.floor(renderProgress / 5))}
+              {'░'.repeat(20 - Math.floor(renderProgress / 5))}
+            </span>
+            <span>{renderProgress}%</span>
           </div>
-          <p className="text-xs text-gray-500 mt-1 text-center">
-            Rendering: {renderProgress}%
-          </p>
         </div>
       )}
     </div>
